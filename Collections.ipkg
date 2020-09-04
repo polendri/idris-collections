@@ -1,0 +1,19 @@
+package Collections
+
+modules = Collections.Set
+        , Collections.Set.BSTree
+        , Collections.Set.BSTree.Core
+        , Collections.Set.BSTree.Elem
+        , Collections.Util.Bnd
+sourcedir = "src"
+depends = contrib
+
+brief = "Verified data structures"
+version = "0.1.0"
+readme = "README.md"
+license = "MIT"
+authors = "Paul Hendry <paul@ijj.li>"
+maintainers = "Paul Hendry <paul@ijj.li>"
+homepage = "https://github.com/polendri/idris-collections"
+sourceloc = "git@github.com:polendri/idris-collections.git"
+bugtracker = "https://github.com/polendri/idris-collections/issues"
