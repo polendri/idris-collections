@@ -1,8 +1,11 @@
 package Collections
 
-modules = Collections.Set
+modules = Collections.Map
+        , Collections.Map.BSTree
+        , Collections.Map.BSTree.Core
+        , Collections.Map.BSTree.Elem
+        , Collections.Set
         , Collections.Set.BSTree
-        , Collections.Set.BSTree.Core
         , Collections.Set.BSTree.Elem
         , Collections.Util.Bnd
 sourcedir = "src"

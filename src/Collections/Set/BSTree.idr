@@ -1,10 +1,28 @@
 module Collections.Set.BSTree
 
 import Collections.Set
+import Collections.Map.BSTree as M
+import Collections.Map.BSTree.Core as MC
 import Collections.Util.Bnd
 import Decidable.Order.Strict
 
-import public Collections.Set.BSTree.Core
+||| A verified binary search tree with erased proofs.
+|||
+||| The values in the tree are constrained by min/max bounds, which make use of `Bnd` to extend the
+||| tree value type with `Top` and `Bot` values. This allows for a natural way to leave bounds
+||| unconstrained (by having a minimum of `Bot` or a maximum of `Top`).
+|||
+||| @ sto The strict total ordering used in the tree. Since a `StrictOrdered` impl is w.r.t. a type
+|||       `a`, the type of tree values is defined implicitly by `sto`.
+||| @ min The minimum value constraint, proving that `sto min (Mid x)` for all values `x` in the tree.
+||| @ max The maximum value constraint, proving that `sto (Mid x) max` for all values `x` in the tree.
+public export
+BST : {0 a : Type} ->
+      {0 to : a -> a -> Type} ->
+      (sto : StrictOrdered a to) ->
+      (min,max : Bnd a) ->
+      Type
+BST sto min max = MC.BST sto () min max
 
 ||| A verified binary search tree with erased proofs.
 |||
@@ -17,39 +35,27 @@ import public Collections.Set.BSTree.Core
 |||       `a`, the type of tree values is defined implicitly by `sto`.
 public export
 BSTree : (sto : StrictOrdered a to) -> Type
-BSTree sto = BST sto Bot Top
+BSTree sto = BST sto () Bot Top
 
 export
-empty : (sto : StrictOrdered a to) => BST sto Bot Top
-empty = Empty BotLTTop
+empty : (sto : StrictOrdered a to) => BSTree sto ()
+empty = M.empty
 
 export
 singleton : (sto : StrictOrdered a to) =>
             (x : a) ->
-            BST sto Bot Top
-singleton x = Node x (Empty BotLTMid) (Empty MidLTTop)
+            BSTree sto
+singleton x = M.singleton x ()
 
 export
-insert' : (sto : StrictOrdered a to) =>
-          {0 min,max : Bnd a} ->
-          (x : a) ->
-          (BndLT to min (Mid x), BndLT to (Mid x) max) ->
-          BST sto min max ->
-          BST sto min max
-insert' x (lx, xu) (Empty _) = Node x (Empty lx) (Empty xu)
-insert' x (lx, xu) (Node y l r) =
-  case order {spo=BndLT to} (Mid x) (Mid y) of
-       DecLT xy   => Node y (insert' x (lx, xy) l) r
-       DecEQ Refl => Node x l r
-       DecGT yx   => Node y l (insert' x (yx, xu) r)
-
 insert : (sto : StrictOrdered a to) =>
          (x : a) ->
          BSTree sto ->
          BSTree sto
-insert x t = insert' x (BotLTMid, MidLTTop) t
+insert x t = M.insert x () t
 
+export
 (sto : StrictOrdered a to) => Set a (BSTree sto) where
-  empty = empty
-  singleton x = singleton x
-  insert x t = insert x t
+  empty = M.empty
+  singleton x = M.singleton x ()
+  insert x t = M.insert x () t
