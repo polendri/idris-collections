@@ -1,13 +1,18 @@
 package Collections
 
-modules = Collections.Map
-        , Collections.Map.BSTree
-        , Collections.Map.BSTree.Core
-        , Collections.Map.BSTree.Elem
-        , Collections.Set
-        , Collections.Set.BSTree
-        , Collections.Set.BSTree.Elem
+modules = Collections.OrdMap
+        , Collections.OrdMap.BSTree
+        , Collections.OrdMap.BSTree.Core
+        , Collections.OrdMap.BSTree.Elem
+        , Collections.OrdMap.BSTree.Quantifiers
+        , Collections.OrdSet
+        , Collections.OrdSet.BSTree
+        , Collections.OrdSet.BSTree.Elem
         , Collections.Util.Bnd
+        , Data.Fun
+        , Data.Rel
+        , Decidable.Order
+        , Decidable.Order.Strict
 sourcedir = "src"
 depends = contrib
 

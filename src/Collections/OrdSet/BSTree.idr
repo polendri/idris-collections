@@ -1,8 +1,8 @@
-module Collections.Set.BSTree
+module Collections.OrdSet.BSTree
 
-import Collections.Set
-import Collections.Map.BSTree as M
-import Collections.Map.BSTree.Core as MC
+import Collections.OrdSet
+import Collections.OrdMap.BSTree as M
+import Collections.OrdMap.BSTree.Core as MC
 import Collections.Util.Bnd
 import Decidable.Order.Strict
 
@@ -12,17 +12,17 @@ import Decidable.Order.Strict
 ||| tree value type with `Top` and `Bot` values. This allows for a natural way to leave bounds
 ||| unconstrained (by having a minimum of `Bot` or a maximum of `Top`).
 |||
-||| @ sto The strict total ordering used in the tree. Since a `StrictOrdered` impl is w.r.t. a type
-|||       `a`, the type of tree values is defined implicitly by `sto`.
+||| @ ord The strict total ordering used in the tree. Since a `StrictOrdered` impl is w.r.t. a type
+|||       `a`, the type of tree values is defined implicitly by `ord`.
 ||| @ min The minimum value constraint, proving that `sto min (Mid x)` for all values `x` in the tree.
 ||| @ max The maximum value constraint, proving that `sto (Mid x) max` for all values `x` in the tree.
 public export
 BST : {0 a : Type} ->
-      {0 to : a -> a -> Type} ->
-      (sto : StrictOrdered a to) ->
-      (min,max : Bnd a) ->
+      {0 sto : a -> a -> Type} ->
+      (ord : StrictOrdered a sto) ->
+      (0 min,max : Bnd a) ->
       Type
-BST sto min max = MC.BST sto () min max
+BST ord min max = MC.BST ord () min max
 
 ||| A verified binary search tree with erased proofs.
 |||
@@ -31,31 +31,27 @@ BST sto min max = MC.BST sto () min max
 ||| `BST` will always be unconstrained. So generally, `BST` can be used when working with trees,
 ||| with `BST` left as an implementation detail.
 |||
-||| @ sto The strict total ordering used in the tree. Since a `StrictOrdered` impl is w.r.t. a type
-|||       `a`, the type of tree values is defined implicitly by `sto`.
+||| @ ord The strict total ordering used in the tree. Since a `StrictOrdered` impl is w.r.t. a type
+|||       `a`, the type of tree values is defined implicitly by `ord`.
 public export
-BSTree : (sto : StrictOrdered a to) -> Type
-BSTree sto = BST sto () Bot Top
+BSTree : {0 a : Type} ->
+         {0 sto : a -> a -> Type} ->
+         (ord : StrictOrdered a sto) ->
+         Type
+BSTree ord = BST ord () Bot Top
 
 export
 empty : (sto : StrictOrdered a to) => BSTree sto ()
-empty = M.empty
-
-export
-singleton : (sto : StrictOrdered a to) =>
-            (x : a) ->
-            BSTree sto
-singleton x = M.singleton x ()
+empty = M.BSTree.empty
 
 export
 insert : (sto : StrictOrdered a to) =>
          (x : a) ->
          BSTree sto ->
          BSTree sto
-insert x t = M.insert x () t
+insert x t = M.BSTree.insert x () t
 
-export
-(sto : StrictOrdered a to) => Set a (BSTree sto) where
-  empty = M.empty
-  singleton x = M.singleton x ()
-  insert x t = M.insert x () t
+-- export
+-- (sto : StrictOrdered a to) => Set a (BSTree sto) where
+--   empty = M.BSTree.empty
+--   insert x t = M.BSTree.insert x () t
