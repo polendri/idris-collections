@@ -7,6 +7,7 @@ modules = Collections.OrdMap
         , Collections.OrdMap.BSTree.Quantifiers
         , Collections.OrdSet
         , Collections.OrdSet.BSTree
+        , Collections.OrdSet.BSTree.Core
         , Collections.OrdSet.BSTree.Elem
         , Collections.Util.Bnd
         , Data.Fun

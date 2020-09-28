@@ -9,9 +9,78 @@ import Decidable.Order.Strict
 import public Collections.OrdMap.BSTree.Core
 
 namespace BSTree
-  -----------
-  -- QUERY --
-  -----------
+  ------------------
+  -- CONSTRUCTION --
+  ------------------
+
+  ||| The empty tree.
+  export
+  empty : (ord : StrictOrdered kTy sto) => BSTree ord vTy
+  empty = Empty BotLTTop
+
+  ||| A tree with a single element.
+  export
+  singleton : (ord : StrictOrdered kTy sto) => (k : kTy) -> (v : vTy) -> BSTree ord vTy
+  singleton k v = Node k v (Empty BotLTMid) (Empty MidLTTop)
+
+  ---------------
+  -- INSERTION --
+  ---------------
+
+  insert' : {ord : StrictOrdered kTy sto} ->
+            {0 min,max : Bnd kTy} ->
+            (k : kTy) ->
+            (v : vTy) ->
+            (0 bnds : (BndLT sto min (Mid k), BndLT sto (Mid k) max)) ->
+            BST ord vTy min max ->
+            BST ord vTy min max
+  insert' x vX (lx, xu) (Empty _) = Node x vX (Empty lx) (Empty xu)
+  insert' x vX (lx, xu) (Node y vY l r) =
+    case order {spo=BndLT sto} (Mid x) (Mid y) of
+        DecLT xy   => Node y vY (insert' x vX (lx, xy) l) r
+        DecEQ Refl => Node x vX l r
+        DecGT yx   => Node y vY l (insert' x vX (yx, xu) r)
+
+  ||| Insert a new key and value in the tree. If the key is already present in the tree, the
+  ||| associated value is replaced with the supplied value.
+  export
+  insert : {ord : StrictOrdered kTy sto} ->
+           (k : kTy) ->
+           (v : vTy) ->
+           BSTree ord vTy ->
+           BSTree ord vTy
+  insert k v t = insert' k v (BotLTMid, MidLTTop) t
+
+  insertWith' : {ord : StrictOrdered kTy sto} ->
+                {0 min,max : Bnd kTy} ->
+                (f : vTy -> vTy -> vTy) ->
+                (k : kTy) ->
+                (v : vTy) ->
+                (0 bnds : (BndLT sto min (Mid k), BndLT sto (Mid k) max)) ->
+                BST ord vTy min max ->
+                BST ord vTy min max
+  insertWith' f x vX (lx, xu) (Empty _) = Node x vX (Empty lx) (Empty xu)
+  insertWith' f x vX (lx, xu) (Node y vY l r) =
+    case order {spo=BndLT sto} (Mid x) (Mid y) of
+        DecLT xy   => Node y vY (insertWith' f x vX (lx, xy) l) r
+        DecEQ Refl => Node x (f vX vY) l r
+        DecGT yx   => Node y vY l (insertWith' f x vX (yx, xu) r)
+
+  ||| Insert with a function, combining new value and old value. `insertWith f k v m` will insert
+  ||| the pair `(k, v)` into `m` if `k` does not exist in the tree. If the key does exist, the
+  ||| function will insert the pair `(k, f new_v old_v)`.
+  export
+  insertWith : {ord : StrictOrdered kTy sto} ->
+               (f : vTy -> vTy -> vTy) ->
+               (k : kTy) ->
+               (v : vTy) ->
+               BSTree ord vTy ->
+               BSTree ord vTy
+  insertWith f k v t = insertWith' f k v (BotLTMid, MidLTTop) t
+
+  --------------
+  -- QUERYING --
+  --------------
 
   ||| Is the tree empty?
   export
@@ -79,66 +148,9 @@ namespace BSTree
                                           DecEQ _ => v
                                           DecGT _ => lookupOr' def k r
 
-  ||| The empty tree.
-  export
-  empty : (ord : StrictOrdered kTy sto) => BSTree ord vTy
-  empty = Empty BotLTTop
-
-  ||| A tree with a single element.
-  export
-  singleton : (ord : StrictOrdered kTy sto) => (k : kTy) -> (v : vTy) -> BSTree ord vTy
-  singleton k v = Node k v (Empty BotLTMid) (Empty MidLTTop)
-
-  insert' : {ord : StrictOrdered kTy sto} ->
-            {0 min,max : Bnd kTy} ->
-            (k : kTy) ->
-            (v : vTy) ->
-            (0 bnds : (BndLT sto min (Mid k), BndLT sto (Mid k) max)) ->
-            BST ord vTy min max ->
-            BST ord vTy min max
-  insert' x vX (lx, xu) (Empty _) = Node x vX (Empty lx) (Empty xu)
-  insert' x vX (lx, xu) (Node y vY l r) =
-    case order {spo=BndLT sto} (Mid x) (Mid y) of
-        DecLT xy   => Node y vY (insert' x vX (lx, xy) l) r
-        DecEQ Refl => Node x vX l r
-        DecGT yx   => Node y vY l (insert' x vX (yx, xu) r)
-
-  ||| Insert a new key and value in the tree. If the key is already present in the tree, the
-  ||| associated value is replaced with the supplied value.
-  export
-  insert : {ord : StrictOrdered kTy sto} ->
-           (k : kTy) ->
-           (v : vTy) ->
-           BSTree ord vTy ->
-           BSTree ord vTy
-  insert k v t = insert' k v (BotLTMid, MidLTTop) t
-
-  insertWith' : {ord : StrictOrdered kTy sto} ->
-                {0 min,max : Bnd kTy} ->
-                (f : vTy -> vTy -> vTy) ->
-                (k : kTy) ->
-                (v : vTy) ->
-                (0 bnds : (BndLT sto min (Mid k), BndLT sto (Mid k) max)) ->
-                BST ord vTy min max ->
-                BST ord vTy min max
-  insertWith' f x vX (lx, xu) (Empty _) = Node x vX (Empty lx) (Empty xu)
-  insertWith' f x vX (lx, xu) (Node y vY l r) =
-    case order {spo=BndLT sto} (Mid x) (Mid y) of
-        DecLT xy   => Node y vY (insertWith' f x vX (lx, xy) l) r
-        DecEQ Refl => Node x (f vX vY) l r
-        DecGT yx   => Node y vY l (insertWith' f x vX (yx, xu) r)
-
-  ||| Insert with a function, combining new value and old value. `insertWith f k v m` will insert
-  ||| the pair `(k, v)` into `m` if `k` does not exist in the tree. If the key does exist, the
-  ||| function will insert the pair `(k, f new_v old_v)`.
-  export
-  insertWith : {ord : StrictOrdered kTy sto} ->
-               (f : vTy -> vTy -> vTy) ->
-               (k : kTy) ->
-               (v : vTy) ->
-               BSTree ord vTy ->
-               BSTree ord vTy
-  insertWith f k v t = insertWith' f k v (BotLTMid, MidLTTop) t
+  -----------------------
+  -- DELETION / UPDATE --
+  -----------------------
 
   ||| Deletes the leftmost element of a tree, returning the key/value of the deleted element,
   ||| the ordering proof of the key w.r.t. `min`, and the updated tree.
@@ -201,13 +213,13 @@ namespace BSTree
 
 export
 OrdMap BSTree where
+  empty = BSTree.empty
+  singleton = BSTree.singleton
   null = BSTree.null
   size = BSTree.size
   member = BSTree.member
   lookup = BSTree.lookup
   lookupOr = BSTree.lookupOr
-  empty = BSTree.empty
-  singleton = BSTree.singleton
   insert = BSTree.insert
   insertWith = BSTree.insertWith
   delete = BSTree.delete
