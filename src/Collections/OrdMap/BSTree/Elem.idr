@@ -155,3 +155,32 @@ namespace Value
            (t : BSTree ord vTy) ->
            Dec (Elem v t)
   isElem v t = isElem' v t
+
+insertElem' : {ord : StrictOrdered kTy sto} ->
+              {0 min,max : Bnd kTy} ->
+              (k : kTy) ->
+              (v : vTy) ->
+              (bnds : (BndLT sto min (Mid k), BndLT sto (Mid k) max)) ->
+              BST ord vTy min max ->
+              (t : BST ord vTy min max ** (Key.Elem k t, Value.Elem v t))
+insertElem' x vX (lx, xu) (Empty _) = (Node x vX (Empty lx) (Empty xu) ** (Here, Here))
+insertElem' x vX (lx, xu) (Node y vY l r) =
+  case order {spo=BndLT sto} (Mid x) (Mid y) of
+      DecLT xy   => let bnd = (lx, xy)
+                        (l' ** (pk, pv)) = insertElem' x vX bnd l in
+                        (Node y vY l' r ** (InLeft bnd pk, InLeft pv))
+      DecEQ Refl => (Node x vX l r ** (Here, Here))
+      DecGT yx   => let bnd = (yx, xu)
+                        (r' ** (pk, pv)) = insertElem' x vX bnd r in
+                    (Node y vY l r' ** (InRight bnd pk, InRight pv))
+
+||| Insert a new key `k` and value `v` in the tree, and produce membership proofs for `k` and `v` in
+||| the updated tree. If the key is already present in the tree, the associated value is replaced
+||| with the supplied value.
+export
+insertElem : {ord : StrictOrdered kTy sto} ->
+             (k : kTy) ->
+             (v : vTy) ->
+             BSTree ord vTy ->
+             (t : BSTree ord vTy ** (Key.Elem k t, Value.Elem v t))
+insertElem k v t = insertElem' k v (BotLTMid, MidLTTop) t

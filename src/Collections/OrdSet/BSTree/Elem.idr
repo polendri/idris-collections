@@ -23,3 +23,13 @@ isElem : {ord : StrictOrdered a sto} ->
          (t : BSTree ord ()) ->
          Dec (M.Key.Elem x t)
 isElem = M.Key.isElem
+
+||| Insert an element `x` in a set, and produce a membership proof for `x` in the updated tree.
+||| If the set already contains an element equal to the given value, it is replaced with the new
+||| value.
+export
+insertElem : {ord : StrictOrdered t sto} ->
+             (x : t) ->
+             BSTree ord () ->
+             (t : BSTree ord () ** Key.Elem x t)
+insertElem x t = let (t' ** (pk, _)) = M.insertElem x () t in (t' ** pk)
