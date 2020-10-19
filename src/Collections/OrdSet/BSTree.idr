@@ -17,6 +17,8 @@ namespace BSTree
   singleton : (sto : StrictOrdered a to) => (x : a) -> BSTree sto
   singleton x = M.BSTree.singleton x ()
 
+  ||| Insert an element in a set. If the set already contains an element equal to the given value,
+  ||| it is replaced with the new value.
   export
   insert : (sto : StrictOrdered a to) =>
            (x : a) ->
@@ -24,8 +26,17 @@ namespace BSTree
            BSTree sto
   insert x t = M.BSTree.insert x () t
 
+  ||| Create a set from a list of elements.
+  export
+  fromList : (sto : StrictOrdered a to) =>
+             (xs : List a) ->
+             BSTree sto
+  fromList [] = empty {sto}
+  fromList (x::xs) = insert {sto} x $ fromList xs
+
 export
 OrdSet BSTree where
-  empty = M.BSTree.empty
-  singleton x = M.BSTree.singleton x ()
-  insert x t = M.BSTree.insert x () t
+  empty {sto} = BSTree.empty {sto}
+  singleton = BSTree.singleton
+  fromList = BSTree.fromList
+  insert = BSTree.insert

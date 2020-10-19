@@ -14,6 +14,8 @@ interface OrdSet (s : {0 t: Type} -> {0 sto : t -> t -> Type} -> (ord : StrictOr
   empty : (ord : StrictOrdered t sto) => s ord
   ||| Create a singleton set.
   singleton : (ord : StrictOrdered t sto) => (x : t) -> s ord
+  ||| Create a set from a list of elements.
+  fromList : (ord : StrictOrdered t sto) => (xs : List t) -> s ord
 
   ---------------
   -- INSERTION --
