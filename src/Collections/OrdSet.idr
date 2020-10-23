@@ -27,3 +27,13 @@ interface OrdSet (s : {0 t: Type} -> {0 sto : t -> t -> Type} -> (ord : StrictOr
            (k : kTy) ->
            s ord ->
            s ord
+
+  --------------
+  -- DELETION --
+  --------------
+
+  ||| Delete an element from a set.
+  delete : {ord : StrictOrdered kTy sto} ->
+           (k : kTy) ->
+           s ord ->
+           s ord

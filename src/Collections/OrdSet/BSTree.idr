@@ -34,9 +34,18 @@ namespace BSTree
   fromList [] = empty {sto}
   fromList (x::xs) = insert {sto} x $ fromList xs
 
+  ||| Delete an element from a set.
+  export
+  delete : (sto : StrictOrdered a to) =>
+           (x : a) ->
+           BSTree sto ->
+           BSTree sto
+  delete x t = M.BSTree.delete x t
+
 export
 OrdSet BSTree where
   empty {sto} = BSTree.empty {sto}
   singleton = BSTree.singleton
   fromList = BSTree.fromList
   insert = BSTree.insert
+  delete {sto} = BSTree.delete {sto}
