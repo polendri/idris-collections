@@ -42,6 +42,10 @@ interface OrdSet (s : {0 t: Type} -> {0 sto : t -> t -> Type} -> (ord : StrictOr
   -- QUERYING --
   --------------
 
+  ||| Predicate on a set being empty.
+  null : {ord : StrictOrdered t sto} -> s ord -> Bool
+  ||| Counts the number of elements in the set.
+  size : {ord : StrictOrdered t sto} -> s ord -> Nat
   ||| Predicate on the membership of `x` in the set.
   member : {ord : StrictOrdered t sto} ->
            (x : t) ->

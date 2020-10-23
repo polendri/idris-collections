@@ -42,7 +42,15 @@ namespace BSTree
            BSTree sto
   delete x t = M.BSTree.delete x t
 
-  ||| Predicate on the membership of `x` in the set.
+  ||| Predicate on a set being empty.
+  null : (sto : StrictOrdered a to) => BSTree sto -> Bool
+  null t = M.BSTree.null t
+
+  ||| Counts the number of elements in the set.
+  size : (sto : StrictOrdered a to) => BSTree sto -> Nat
+  size t = M.BSTree.size t
+
+  ||| Counts the number of elements in the set.
   export
   member : (sto : StrictOrdered a to) =>
            (x : a) ->
@@ -57,4 +65,6 @@ OrdSet BSTree where
   fromList = BSTree.fromList
   insert = BSTree.insert
   delete {sto} = BSTree.delete {sto}
+  null = BSTree.null
+  size = BSTree.size
   member {sto} = BSTree.member {sto}
