@@ -23,8 +23,8 @@ interface OrdSet (s : {0 t: Type} -> {0 sto : t -> t -> Type} -> (ord : StrictOr
 
   ||| Insert an element in a set. If the set already contains an element equal to the given value,
   ||| it is replaced with the new value.
-  insert : {ord : StrictOrdered kTy sto} ->
-           (k : kTy) ->
+  insert : {ord : StrictOrdered t sto} ->
+           (x : t) ->
            s ord ->
            s ord
 
@@ -33,7 +33,17 @@ interface OrdSet (s : {0 t: Type} -> {0 sto : t -> t -> Type} -> (ord : StrictOr
   --------------
 
   ||| Delete an element from a set.
-  delete : {ord : StrictOrdered kTy sto} ->
-           (k : kTy) ->
+  delete : {ord : StrictOrdered t sto} ->
+           (x : t) ->
            s ord ->
            s ord
+
+  --------------
+  -- QUERYING --
+  --------------
+
+  ||| Predicate on the membership of `x` in the set.
+  member : {ord : StrictOrdered t sto} ->
+           (x : t) ->
+           s ord ->
+           Bool

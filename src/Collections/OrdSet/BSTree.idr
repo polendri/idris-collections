@@ -42,6 +42,14 @@ namespace BSTree
            BSTree sto
   delete x t = M.BSTree.delete x t
 
+  ||| Predicate on the membership of `x` in the set.
+  export
+  member : (sto : StrictOrdered a to) =>
+           (x : a) ->
+           BSTree sto ->
+           Bool
+  member x t = M.BSTree.member x t
+
 export
 OrdSet BSTree where
   empty {sto} = BSTree.empty {sto}
@@ -49,3 +57,4 @@ OrdSet BSTree where
   fromList = BSTree.fromList
   insert = BSTree.insert
   delete {sto} = BSTree.delete {sto}
+  member {sto} = BSTree.member {sto}
