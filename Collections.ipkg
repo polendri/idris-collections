@@ -10,10 +10,6 @@ modules = Collections.OrdMap
         , Collections.OrdSet.BSTree.Core
         , Collections.OrdSet.BSTree.Elem
         , Collections.Util.Bnd
-        , Data.Fun
-        , Data.Rel
-        , Decidable.Order
-        , Decidable.Order.Strict
 sourcedir = "src"
 depends = contrib
 
