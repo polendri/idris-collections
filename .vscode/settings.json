@@ -1,0 +1,8 @@
+{
+  "idris.hoverAction": "Type At",
+  "idris.idris2Mode": true,
+  "idris.idrisPath": "idris2",
+  "[idris]": {
+    "editor.tabSize": 2
+  }
+}
