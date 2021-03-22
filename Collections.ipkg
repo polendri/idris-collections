@@ -1,15 +1,14 @@
 package Collections
 
-modules = Collections.OrdMap
-        , Collections.OrdMap.BSTree
-        , Collections.OrdMap.BSTree.Core
-        , Collections.OrdMap.BSTree.Elem
-        , Collections.OrdMap.BSTree.Quantifiers
-        , Collections.OrdSet
-        , Collections.OrdSet.BSTree
-        , Collections.OrdSet.BSTree.Core
-        , Collections.OrdSet.BSTree.Elem
+modules = Collections.BSTree.Map
+        , Collections.BSTree.Map.Core
+        , Collections.BSTree.Map.Elem
+        , Collections.BSTree.Map.Quantifiers
+        , Collections.BSTree.Set
+        , Collections.BSTree.Set.Core
+        , Collections.BSTree.Set.Quantifiers
         , Collections.Util.Bnd
+        , Collections.Util.Erased
 sourcedir = "src"
 depends = contrib
 
