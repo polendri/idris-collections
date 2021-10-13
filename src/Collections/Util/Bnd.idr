@@ -1,7 +1,8 @@
 module Collections.Util.Bnd
 
 import Decidable.Equality
-import Decidable.Order
+import Control.Relation
+import Control.Order
 import Decidable.Order.Strict
 
 ||| Extends a type with `Bot` and `Top` values, making it a "bounded" type.
@@ -39,8 +40,14 @@ Uninhabited (Top = Mid x) where
   uninhabited Refl impossible
 
 ||| Proof that if two `Mid` values are equal, then their wrapped values are equal
+export
 midEq : Mid x = Mid y -> x = y
 midEq Refl = Refl
+
+||| Proof that if two `Mid` values are not equal, then their wrapped values are not equal
+export
+midNotEq : Not (Mid x = Mid y) -> Not (x = y)
+midNotEq ctra prf = ctra $ cong Mid prf
 
 export
 DecEq t => DecEq (Bnd t) where
@@ -69,30 +76,33 @@ data BndLTE : (o : a -> a -> Type) -> Bnd a -> Bnd a -> Type where
   AllLTETop : BndLTE o x Top
 
 export
-Preorder t po => Preorder (Bnd t) (BndLTE po) where
-  transitive Bot     y       z       BotLTEAll      yz             = BotLTEAll
-  transitive (Mid x) (Mid y) (Mid z) (MidLTEMid xy) (MidLTEMid yz) = MidLTEMid $ transitive x y z xy yz
-  transitive (Mid x) (Mid y) Top     (MidLTEMid xy) AllLTETop      = AllLTETop
-  transitive x       Top     Top     AllLTETop      AllLTETop      = AllLTETop
-  reflexive Bot = BotLTEAll
-  reflexive (Mid x) = MidLTEMid $ reflexive x
-  reflexive Top = AllLTETop
+Reflexive ty rel => Reflexive (Bnd ty) (BndLTE rel) where
+  reflexive {x=Bot}   = BotLTEAll
+  reflexive {x=Mid x} = MidLTEMid $ reflexive {x=x}
+  reflexive {x=Top}   = AllLTETop
 
 export
-Poset t po => Poset (Bnd t) (BndLTE po) where
-  antisymmetric Bot     Bot     BotLTEAll      BotLTEAll      = Refl
-  antisymmetric (Mid x) (Mid y) (MidLTEMid xy) (MidLTEMid yx) = cong Mid $ antisymmetric x y xy yx
-  antisymmetric Top     Top     AllLTETop      AllLTETop      = Refl
+Transitive ty rel => Transitive (Bnd ty) (BndLTE rel) where
+  transitive {x=Bot}                       BotLTEAll      yz             = BotLTEAll
+  transitive {x=Mid x} {y=Mid y} {z=Mid z} (MidLTEMid xy) (MidLTEMid yz) = MidLTEMid $ transitive {x} {y} {z} xy yz
+  transitive {x=Mid _} {y=Mid _} {z=Top}   (MidLTEMid xy) AllLTETop      = AllLTETop
+  transitive           {y=Top}   {z=Top}   AllLTETop      AllLTETop      = AllLTETop
 
 export
-Ordered t to => Ordered (Bnd t) (BndLTE to) where
-  order Bot     y       = Left BotLTEAll
-  order x       Bot     = Right BotLTEAll
-  order Top     y       = Right AllLTETop
-  order x       Top     = Left AllLTETop
-  order (Mid x) (Mid y) = case order {to} x y of
-                               Left  xy => Left  $ MidLTEMid xy
-                               Right yx => Right $ MidLTEMid yx
+Antisymmetric ty rel => Antisymmetric (Bnd ty) (BndLTE rel) where
+  antisymmetric {x=Bot}   {y=Bot}   BotLTEAll      BotLTEAll      = Refl
+  antisymmetric {x=Mid x} {y=Mid y} (MidLTEMid xy) (MidLTEMid yx) = cong Mid $ antisymmetric {x} {y} xy yx
+  antisymmetric {x=Top}   {y=Top}   AllLTETop      AllLTETop      = Refl
+
+export
+Connex ty rel => Connex (Bnd ty) (BndLTE rel) where
+  connex {x=Bot}             _   = Left BotLTEAll
+  connex           {y=Bot}   _   = Right BotLTEAll
+  connex {x=Top}             _   = Right AllLTETop
+  connex           {y=Top}   _   = Left AllLTETop
+  connex {x=Mid x} {y=Mid y} prf = case connex {rel} {x} {y} (midNotEq prf) of
+                                        Left  xy => Left  $ MidLTEMid xy
+                                        Right yx => Right $ MidLTEMid yx
 
 ||| Given a LT (less than) relation on `a`, produces a LT relation extended to `Bnd a`
 |||
@@ -105,23 +115,45 @@ data BndLT : (so : a -> a -> Type) -> Bnd a -> Bnd a -> Type where
   MidLTTop : BndLT so (Mid x) Top
 
 export
-StrictPreorder t spo => StrictPreorder (Bnd t) (BndLT spo) where
-  transitive Bot     (Mid _) (Mid _) BotLTMid (MidLTMid _) = BotLTMid
-  transitive Bot     (Mid _) Top     BotLTMid      MidLTTop      = BotLTTop
-  transitive Bot     Top     _       BotLTTop      BotLTMid      impossible
-  transitive Bot     Top     _       BotLTTop      BotLTTop      impossible
-  transitive Bot     Top     _       BotLTTop      (MidLTMid x)  impossible
-  transitive Bot     Top     _       BotLTTop      MidLTTop      impossible
-  transitive (Mid x) (Mid y) (Mid z) (MidLTMid xy) (MidLTMid yz) = MidLTMid $ transitive x y z xy yz
-  transitive (Mid x) (Mid y) Top     (MidLTMid w)  MidLTTop      = MidLTTop
-  transitive (Mid _) Top     _       MidLTTop      BotLTMid      impossible
-  transitive (Mid _) Top     _       MidLTTop      BotLTTop      impossible
-  transitive (Mid _) Top     _       MidLTTop      (MidLTMid y)  impossible
-  transitive (Mid _) Top     _       MidLTTop      MidLTTop      impossible
-  irreflexive (Mid y) (MidLTMid yy) = irreflexive y yy
+Transitive ty rel => Transitive (Bnd ty) (BndLT rel) where
+  transitive {x=Bot}   {y=Mid _} {z=Mid _} BotLTMid      (MidLTMid _)  = BotLTMid
+  transitive {x=Bot}   {y=Mid _} {z=Top}   BotLTMid      MidLTTop      = BotLTTop
+  transitive {x=Bot}   {y=Top}             BotLTTop      BotLTMid      impossible
+  transitive {x=Bot}   {y=Top}             BotLTTop      BotLTTop      impossible
+  transitive {x=Bot}   {y=Top}             BotLTTop      (MidLTMid x)  impossible
+  transitive {x=Bot}   {y=Top}             BotLTTop      MidLTTop      impossible
+  transitive {x=Mid x} {y=Mid y} {z=Mid z} (MidLTMid xy) (MidLTMid yz) = MidLTMid $ transitive {x} {y} {z} xy yz
+  transitive {x=Mid x} {y=Mid y} {z=Top}   (MidLTMid w)  MidLTTop      = MidLTTop
+  transitive {x=Mid _} {y=Top}             MidLTTop      BotLTMid      impossible
+  transitive {x=Mid _} {y=Top}             MidLTTop      BotLTTop      impossible
+  transitive {x=Mid _} {y=Top}             MidLTTop      (MidLTMid y)  impossible
+  transitive {x=Mid _} {y=Top}             MidLTTop      MidLTTop      impossible
 
 export
-StrictOrdered t to => StrictOrdered (Bnd t) (BndLT to) where
+Irreflexive ty rel => Irreflexive (Bnd ty) (BndLT rel) where
+  irreflexive {x=Mid x} (MidLTMid xx) = irreflexive {x} xx
+
+export
+Asymmetric ty rel => Asymmetric (Bnd ty) (BndLT rel) where
+  asymmetric BotLTMid BotLTMid impossible
+  asymmetric BotLTMid BotLTTop impossible
+  asymmetric BotLTMid (MidLTMid _) impossible
+  asymmetric BotLTMid MidLTTop impossible
+  asymmetric BotLTTop BotLTMid impossible
+  asymmetric BotLTTop BotLTTop impossible
+  asymmetric BotLTTop (MidLTMid _) impossible
+  asymmetric BotLTTop MidLTTop impossible
+  asymmetric (MidLTMid xy) (MidLTMid yx) = asymmetric {rel} xy yx
+  asymmetric MidLTTop BotLTMid impossible
+  asymmetric MidLTTop BotLTTop impossible
+  asymmetric MidLTTop (MidLTMid _) impossible
+  asymmetric MidLTTop MidLTTop impossible
+
+export
+StrictPreorder ty rel => StrictPreorder (Bnd ty) (BndLT rel) where
+
+export
+StrictOrdered ty rel => StrictOrdered (Bnd ty) (BndLT rel) where
   order Bot     Bot     = DecEQ Refl
   order Bot     (Mid _) = DecLT BotLTMid
   order Bot     Top     = DecLT BotLTTop

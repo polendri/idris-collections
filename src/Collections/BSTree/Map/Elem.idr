@@ -11,39 +11,39 @@ namespace Key
   ||| @ k The key whose presence is being asserted
   ||| @ t The tree in which `k` is present
   public export
-  data Elem : {0 sto : kTy -> kTy -> Type} ->
-              {pre : StrictPreorder kTy sto} ->
-              {tot : StrictOrdered kTy sto} ->
+  data Elem : {0 rel : kTy -> kTy -> Type} ->
+              {pre : StrictPreorder kTy rel} ->
+              {tot : StrictOrdered kTy rel} ->
               (k : kTy) ->
-              (t : BST pre tot vTy min max) ->
+              (t : BST pre tot vTy mn mx) ->
               Type where
     [search k]
     ||| Proof that `k` is at the root of the tree.
-    Here    : {0 l : BST pre tot vTy min (Mid k)} ->
-              {0 r : BST pre tot vTy (Mid k) max} ->
+    Here    : {0 l : BST pre tot vTy mn (Mid k)} ->
+              {0 r : BST pre tot vTy (Mid k) mx} ->
               Elem k (Node k v l r)
     ||| Proof that `k` is in the left subtree.
     |||
     ||| @ bnds  Ordering witnesses on `k`. These are not erased.
     ||| @ elemL Proof that `k` is in a tree `l`.
-    InLeft  : {0 sto : kTy -> kTy -> Type} ->
-              {pre : StrictPreorder kTy sto} ->
-              {tot : StrictOrdered kTy sto} ->
-              {0 l : BST pre tot vTy min (Mid x)} ->
-              {0 r : BST pre tot vTy (Mid x) max} ->
-              (bnds : (BndLT sto min (Mid k), BndLT sto (Mid k) (Mid x))) ->
+    InLeft  : {0 rel : kTy -> kTy -> Type} ->
+              {pre : StrictPreorder kTy rel} ->
+              {tot : StrictOrdered kTy rel} ->
+              {0 l : BST pre tot vTy mn (Mid x)} ->
+              {0 r : BST pre tot vTy (Mid x) mx} ->
+              (bnds : (BndLT rel mn (Mid k), BndLT rel (Mid k) (Mid x))) ->
               (elemL : Elem k l) ->
               Elem k (Node x v l r)
     ||| Proof that `k` is in the right subtree.
     |||
     ||| @ bnds  Ordering witnesses on `k`. These are not erased.
     ||| @ elemL Proof that `k` is in a tree `r`.
-    InRight : {0 sto : kTy -> kTy -> Type} ->
-              {pre : StrictPreorder kTy sto} ->
-              {tot : StrictOrdered kTy sto} ->
-              {0 l : BST pre tot vTy min (Mid x)} ->
-              {0 r : BST pre tot vTy (Mid x) max} ->
-              (bnds : (BndLT sto (Mid x) (Mid k), BndLT sto (Mid k) max)) ->
+    InRight : {0 rel : kTy -> kTy -> Type} ->
+              {pre : StrictPreorder kTy rel} ->
+              {tot : StrictOrdered kTy rel} ->
+              {0 l : BST pre tot vTy mn (Mid x)} ->
+              {0 r : BST pre tot vTy (Mid x) mx} ->
+              (bnds : (BndLT rel (Mid x) (Mid k), BndLT rel (Mid k) mx)) ->
               (elemR : Elem k r) ->
               Elem k (Node x v l r)
 
@@ -55,42 +55,42 @@ namespace Key
 
   ||| Proof that if `k` is an element of a tree and `k` precedes its root node, then `k` is an
   ||| element of its left subtree.
-  elemInLeft : {0 sto : kTy -> kTy -> Type} ->
-               {pre : StrictPreorder kTy sto} ->
-               {tot : StrictOrdered kTy sto} ->
+  elemInLeft : {0 rel : kTy -> kTy -> Type} ->
+               {pre : StrictPreorder kTy rel} ->
+               {tot : StrictOrdered kTy rel} ->
                {k,x : kTy} ->
-               {l : BST pre tot vTy min (Mid x)} ->
-               {r : BST pre tot vTy (Mid x) max} ->
-               BndLT sto (Mid k) (Mid x) ->
+               {l : BST pre tot vTy mn (Mid x)} ->
+               {r : BST pre tot vTy (Mid x) mx} ->
+               BndLT rel (Mid k) (Mid x) ->
                Elem k (Node x v l r) ->
                Elem k l
-  elemInLeft {pre} {k} kx Here                    = absurd $ irreflexive (Mid k) kx
+  elemInLeft {pre} {k} kx Here                    = absurd $ irreflexive {x=Mid k} kx
   elemInLeft           _  (InLeft _ elemL)        = elemL
   elemInLeft {pre}     kx (InRight (xk, _) elemR) =
-    absurd $ asymmetric (Mid k) (Mid x) kx xk
+    absurd $ asymmetric @{SPA} {x=Mid k} {y=Mid x} kx xk
 
   ||| Proof that if `x` is an element of a tree and `x` follows its root node, then `x` is an element
   ||| of its right subtree.
-  elemInRight : {0 sto : kTy -> kTy -> Type} ->
-                {pre : StrictPreorder kTy sto} ->
-                {tot : StrictOrdered kTy sto} ->
+  elemInRight : {0 rel : kTy -> kTy -> Type} ->
+                {pre : StrictPreorder kTy rel} ->
+                {tot : StrictOrdered kTy rel} ->
                 {k,x : kTy} ->
-                {l : BST pre tot vTy min (Mid x)} ->
-                {r : BST pre tot vTy (Mid x) max} ->
-                BndLT sto (Mid x) (Mid k) ->
+                {l : BST pre tot vTy mn (Mid x)} ->
+                {r : BST pre tot vTy (Mid x) mx} ->
+                BndLT rel (Mid x) (Mid k) ->
                 Elem k (Node x v l r) ->
                 Elem k r
-  elemInRight {pre} {k} xk Here                   = absurd $ irreflexive (Mid k) xk
+  elemInRight {pre} {k} xk Here                   = absurd $ irreflexive {x=Mid k} xk
   elemInRight {pre}     xk (InLeft (_, kx) elemL) =
-    absurd $ asymmetric (Mid k) (Mid x) kx xk
+    absurd $ asymmetric @{SPA} {x=Mid k} {y=Mid x} kx xk
   elemInRight           _  (InRight _ elemR)      = elemR
 
-  isElem' : {0 sto : kTy -> kTy -> Type} ->
-            {pre : StrictPreorder kTy sto} ->
-            {tot : StrictOrdered kTy sto} ->
+  isElem' : {0 rel : kTy -> kTy -> Type} ->
+            {pre : StrictPreorder kTy rel} ->
+            {tot : StrictOrdered kTy rel} ->
             (k : kTy) ->
-            (BndLT sto min (Mid k), BndLT sto (Mid k) max) ->
-            (t : BST pre tot vTy min max) ->
+            (BndLT rel mn (Mid k), BndLT rel (Mid k) mx) ->
+            (t : BST pre tot vTy mn mx) ->
             Dec (Elem k t)
   isElem' _ _ (Empty _) = No absurd
   isElem' {tot} k (lk, ku) (Node x v l r) =
@@ -105,11 +105,11 @@ namespace Key
 
   ||| Decide whether `k` is a key in the tree `t`.
   export
-  isElem : {0 sto : kTy -> kTy -> Type} ->
-           {pre : StrictPreorder kTy sto} ->
-           {tot : StrictOrdered kTy sto} ->
+  isElem : {0 rel : kTy -> kTy -> Type} ->
+           {pre : StrictPreorder kTy rel} ->
+           {tot : StrictOrdered kTy rel} ->
            (k : kTy) ->
-           (t : BSTree sto {pre} {tot} vTy) ->
+           (t : BSTree rel {pre} {tot} vTy) ->
            Dec (Elem k t)
   isElem k t = isElem' k (BotLTMid, MidLTTop) t
 
@@ -119,10 +119,10 @@ namespace Value
   ||| @ v The key whose presence is being asserted
   ||| @ t The tree in which `v` is present
   public export
-  data Elem : {pre : StrictPreorder kTy sto} ->
-              {tot : StrictOrdered kTy sto} ->
+  data Elem : {pre : StrictPreorder kTy rel} ->
+              {tot : StrictOrdered kTy rel} ->
               (v : vTy) ->
-              (t : BST pre tot vTy min max) ->
+              (t : BST pre tot vTy mn mx) ->
               Type where
     [search v]
     ||| Proof that `v` is at the root of the tree.
@@ -130,15 +130,15 @@ namespace Value
     ||| Proof that `v` is in the left subtree.
     |||
     ||| @ elemL Proof that `v` is in a tree `l`.
-    InLeft  : {l : BST pre tot vTy min (Mid k)} ->
-              {r : BST pre tot vTy (Mid k) max} ->
+    InLeft  : {l : BST pre tot vTy mn (Mid k)} ->
+              {r : BST pre tot vTy (Mid k) mx} ->
               (elemL : Value.Elem {pre} {tot} v l) ->
               Elem v (Node k x l r)
     ||| Proof that `v` is in the right subtree.
     |||
     ||| @ elemL Proof that `v` is in a tree `r`.
-    InRight : {l : BST pre tot vTy min (Mid k)} ->
-              {r : BST pre tot vTy (Mid k) max} ->
+    InRight : {l : BST pre tot vTy mn (Mid k)} ->
+              {r : BST pre tot vTy (Mid k) mx} ->
               (elemR : Value.Elem {pre} {tot} v r) ->
               Elem v (Node k x l r)
 
@@ -154,14 +154,14 @@ namespace Value
   ||| via an inefficient search.
   export
   isElem : DecEq vTy =>
-           {pre : StrictPreorder kTy sto} ->
-           {tot : StrictOrdered kTy sto} ->
+           {pre : StrictPreorder kTy rel} ->
+           {tot : StrictOrdered kTy rel} ->
            (v : vTy) ->
-           (t : BSTree sto vTy) ->
+           (t : BSTree rel vTy) ->
            Dec (Value.Elem v t)
   isElem = isElem' where
     isElem' : (v : vTy) ->
-              (t : BST pre tot vTy min max) ->
+              (t : BST pre tot vTy mn mx) ->
               Dec (Value.Elem v t)
     isElem' _ (Empty _) = No absurd
     isElem' v (Node _ x l r) =
@@ -176,13 +176,13 @@ namespace Value
                                                                   Here        => absurd $ neq Refl
                                                                   InRight prf => absurd $ notR prf
 
-insertElem' : {0 sto : kTy -> kTy -> Type} ->
-              {pre : StrictPreorder kTy sto} ->
-              {tot : StrictOrdered kTy sto} ->
+insertElem' : {0 rel : kTy -> kTy -> Type} ->
+              {pre : StrictPreorder kTy rel} ->
+              {tot : StrictOrdered kTy rel} ->
               {0 min,max : Bnd kTy} ->
               (k : kTy) ->
               (v : vTy) ->
-              (bnds : (BndLT sto min (Mid k), BndLT sto (Mid k) max)) ->
+              (bnds : (BndLT rel min (Mid k), BndLT rel (Mid k) max)) ->
               (t : BST pre tot vTy min max) ->
               (t : BST pre tot vTy min max ** (Key.Elem k t, Value.Elem v t))
 insertElem' x vX (lx, xu) (Empty _) =
@@ -201,11 +201,11 @@ insertElem' {tot} x vX (lx, xu) (Node y vY l r) =
 ||| the updated tree. If the key is already present in the tree, the associated value is replaced
 ||| with the supplied value.
 export
-insertElem : {0 sto : kTy -> kTy -> Type} ->
-             {pre : StrictPreorder kTy sto} ->
-             {tot : StrictOrdered kTy sto} ->
+insertElem : {0 rel : kTy -> kTy -> Type} ->
+             {pre : StrictPreorder kTy rel} ->
+             {tot : StrictOrdered kTy rel} ->
              (k : kTy) ->
              (v : vTy) ->
-             BSTree {pre} {tot} sto vTy ->
-             (t : BSTree {pre} {tot} sto vTy ** (Key.Elem k t, Value.Elem v t))
+             BSTree {pre} {tot} rel vTy ->
+             (t : BSTree {pre} {tot} rel vTy ** (Key.Elem k t, Value.Elem v t))
 insertElem k v t = insertElem' k v (BotLTMid, MidLTTop) t

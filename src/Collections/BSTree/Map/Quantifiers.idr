@@ -6,9 +6,9 @@ import Decidable.Order.Strict
 
 ||| A proof that a tree is non-empty.
 public export
-data NonEmpty : BST pre tot vTy min max -> Type where
+data NonEmpty : BST pre tot vTy mn mx -> Type where
   IsNode : {pre : StrictPreorder kTy sto} ->
            {tot : StrictOrdered kTy sto} ->
-           {l : BST pre tot vTy min (Mid k)} ->
-           {r : BST pre tot vTy (Mid k) max} ->
+           {l : BST pre tot vTy mn (Mid k)} ->
+           {r : BST pre tot vTy (Mid k) mx} ->
            NonEmpty (Node k v l r)
